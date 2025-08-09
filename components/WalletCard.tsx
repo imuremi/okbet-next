@@ -71,23 +71,34 @@ export default function WalletCard({ wallet }: WalletCardProps) {
     setIsClientSigning(true);
     try {
       const message = `Signing this message to verify ownership of ${wallet.address}`;
+      console.log('Client signing attempt:', { message, walletType: wallet.chainType, walletAddress: wallet.address });
+      
       let signature;
       if (wallet.chainType === "ethereum") {
+        console.log('Signing with Ethereum...');
         const result = await signMessageEthereum({ message });
         signature = result.signature;
+        console.log('Ethereum signature result:', result);
       } else if (wallet.chainType === "solana") {
+        console.log('Signing with Solana...');
         const result = await signMessageSolana({
           message,
         });
         signature = result.signature;
+        console.log('Solana signature result:', result);
       }
       console.log("Message signed on client! Signature: ", signature);
     } catch (error) {
       console.error("Error signing message:", error);
+      console.error("Error details:", {
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+        walletType: wallet.chainType
+      });
     } finally {
       setIsClientSigning(false);
     }
-  }, [wallet]);
+  }, [wallet, signMessageEthereum, signMessageSolana]);
 
   const handleRemoteSign = useCallback(async () => {
     setIsRemoteSigning(true);
@@ -97,7 +108,17 @@ export default function WalletCard({ wallet }: WalletCardProps) {
         wallet.chainType === "ethereum"
           ? "/api/ethereum/personal_sign"
           : "/api/solana/sign_message";
+      
       const message = `Signing this message to verify ownership of ${wallet.address}`;
+      
+      console.log('Remote signing attempt:', {
+        path,
+        walletType: wallet.chainType,
+        walletId: wallet.id,
+        message,
+        hasAuthToken: !!authToken
+      });
+
       const response = await axios.post(
         path,
         {
@@ -112,6 +133,7 @@ export default function WalletCard({ wallet }: WalletCardProps) {
       );
 
       const data = response.data;
+      console.log('Remote signing response:', { status: response.status, data });
 
       if (response.status === 200) {
         console.log(
@@ -122,10 +144,16 @@ export default function WalletCard({ wallet }: WalletCardProps) {
       }
     } catch (error) {
       console.error("Error signing message:", error);
+      console.error("Remote signing error details:", {
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+        walletType: wallet.chainType,
+        walletId: wallet.id
+      });
     } finally {
       setIsRemoteSigning(false);
     }
-  }, [wallet.id]);
+  }, [wallet.id, wallet.chainType, wallet.address]);
 
   return (
     <div className="flex flex-col gap-4 p-4 border border-gray-200 rounded-lg">

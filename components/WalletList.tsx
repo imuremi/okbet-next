@@ -7,11 +7,26 @@ import {
 import { useCallback, useMemo, useState } from "react";
 import WalletCard from "./WalletCard";
 
+// Extend Window interface to include Solana wallet
+declare global {
+  interface Window {
+    solana?: {
+      isPhantom?: boolean;
+      [key: string]: any;
+    };
+  }
+}
+
 export default function WalletList() {
   const { user } = useUser();
   const { createWallet: createEthereumWallet } = useCreateWallet();
   const { createWallet: createSolanaWallet } = useSolanaWallets();
   const [isCreating, setIsCreating] = useState(false);
+
+  // Debug logging for wallet detection
+  console.log('Phantom detected:', window.solana?.isPhantom);
+  console.log('Solana object:', window.solana);
+  console.log('Available wallets:', user?.linkedAccounts);
 
   const ethereumEmbeddedWallets = useMemo<WalletWithMetadata[]>(
     () =>

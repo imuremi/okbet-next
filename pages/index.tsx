@@ -1,5 +1,5 @@
 import Portal from "../components/graphics/portal";
-import { useLogin } from "@privy-io/react-auth";
+import { useLogin, usePrivy } from "@privy-io/react-auth";
 import { PrivyClient } from "@privy-io/server-auth";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
@@ -32,9 +32,12 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { ready, authenticated } = usePrivy();
   const { login } = useLogin({
     onComplete: () => router.push("/dashboard"),
   });
+  const disableLogin = !ready || (ready && authenticated);
+
 
   return (
     <>
@@ -51,7 +54,12 @@ export default function LoginPage() {
             <div className="mt-6 flex justify-center text-center">
               <button
                 className="bg-violet-600 hover:bg-violet-700 py-3 px-6 text-white rounded-lg"
-                onClick={login}
+                disabled={disableLogin}
+                onClick={() => login({
+                  loginMethods: ['email', 'wallet', 'google'],
+                  walletChainType: 'ethereum-and-solana',
+                  disableSignup: false
+              })}
               >
                 Log in
               </button>

@@ -2,6 +2,8 @@ import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { PrivyProvider } from "@privy-io/react-auth";
+import {toSolanaWalletConnectors} from "@privy-io/react-auth/solana";
+
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -44,8 +46,11 @@ function MyApp({ Component, pageProps }: AppProps) {
         appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
         config={{
           embeddedWallets: {
-            createOnLogin: "all-users",
+            createOnLogin: "users-without-wallets",
           },
+          appearance: {walletChainType: 'ethereum-and-solana'},
+          externalWallets: {solana: {connectors: toSolanaWalletConnectors()}},
+          solanaClusters: [{name: 'mainnet-beta', rpcUrl: 'https://api.mainnet-beta.solana.com'}]
         }}
       >
         <Component {...pageProps} />
